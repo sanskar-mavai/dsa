@@ -1,0 +1,53 @@
+borrow_records = {
+    "Eren": ["Book A", "Book A"],
+    "Ben": ["Book C"],
+    "Charly": [],
+    "Dev": ["Book A", "Book C", "Book B"],
+    "Mikasa": [],
+    "Franklin": ["Book C", "Book C"],
+}
+
+def average_borrowed(records):
+    total = 0
+    for books in records.values():
+        total += len(books)
+    return total / len(records)
+
+def max_min_borrowed(records):
+    book_count = {}
+    for books in records.values():
+        for book in books:
+            if book in book_count:
+                book_count[book] += 1
+            else:
+                book_count[book] = 1
+    max_book = max(book_count, key=book_count.get)
+    min_book = min(book_count, key=book_count.get)
+    return max_book, min_book
+
+def count_zero_borrowers(records):
+    count = 0
+    for books in records.values():
+        if len(books) == 0:
+            count += 1
+    return count
+
+def most_frequent_book(records):
+    book_count = {}
+    for books in records.values():
+        for book in books:
+            if book in book_count:
+                book_count[book] += 1
+            else:
+                book_count[book] = 1
+    return max(book_count, key=book_count.get)
+
+print("Average books borrowed:", average_borrowed(borrow_records))
+
+max_b, min_b = max_min_borrowed(borrow_records)
+print("Most borrowed book:", max_b)
+print("Least borrowed book:", min_b)
+
+print("Members who borrowed 0 books:", count_zero_borrowers(borrow_records))
+
+print("Most frequently borrowed book:", most_frequent_book(borrow_records))
