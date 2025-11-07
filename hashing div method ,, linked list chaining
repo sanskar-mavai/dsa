@@ -1,0 +1,223 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+
+#define SIZE 10
+#define VALUE_LEN 100
+#define LINE_LEN 256
+
+struct Node {
+    int key;
+    char value[VALUE_LEN];
+    struct Node* next;
+};
+
+struct Node* table[SIZE] = { NULL };
+
+int hash(int key);
+void insertKey(int key, const char value[]);
+void searchKey(int key);
+void deleteKey(int key);
+void displayTable(void);
+void freeTable(void);
+int read_int(const char *prompt, int *out);
+void read_string(const char *prompt, char *out, size_t len);
+
+int hash(int key) {
+    int h = key % SIZE;
+    if (h < 0) h += SIZE;
+    return h;
+}
+
+void insertKey(int key, const char value[]) {
+    int index = hash(key);
+    struct Node* cur = table[index];
+
+    while (cur) {
+        if (cur->key == key) {
+            strncpy(cur->value, value, VALUE_LEN - 1);
+            cur->value[VALUE_LEN - 1] = '\0';
+            printf("Updated key %d at index %d with value: %s\n", key, index, cur->value);
+            return;
+        }
+        cur = cur->next;
+    }
+
+    struct Node* newNode = (struct Node*)malloc(sizeof(struct Node));
+    if (!newNode) {
+        fprintf(stderr, "Memory allocation failed\n");
+        return;
+    }
+    
+    newNode->key = key;
+    strncpy(newNode->value, value, VALUE_LEN - 1);
+    newNode->value[VALUE_LEN - 1] = '\0';
+    
+    newNode->next = table[index];
+    table[index] = newNode;
+    
+    printf("Inserted key %d at index %d with value: %s\n", key, index, newNode->value);
+}
+
+void searchKey(int key) {
+    int index = hash(key);
+    struct Node* cur = table[index];
+    
+    while (cur) {
+        if (cur->key == key) {
+            printf("Key %d found at index %d with value: %s\n", key, index, cur->value);
+            return;
+        }
+        cur = cur->next;
+    }
+    
+    printf("Key %d not found!\n", key);
+}
+
+void deleteKey(int key) {
+    int index = hash(key);
+    struct Node* cur = table[index];
+    struct Node* prev = NULL;
+    
+    while (cur) {
+        if (cur->key == key) {
+            if (prev == NULL) {
+                table[index] = cur->next;
+            } else {
+                prev->next = cur->next;
+            }
+            free(cur);
+            printf("Key %d deleted!\n", key);
+            return;
+        }
+        prev = cur;
+        cur = cur->next;
+    }
+    
+    printf("Key %d not found!\n", key);
+}
+
+void displayTable(void) {
+    printf("\nHash Table:\n");
+    for (int i = 0; i < SIZE; ++i) {
+        printf("Index %d:", i);
+        struct Node* cur = table[i];
+        if (!cur) {
+            printf(" NULL\n");
+            continue;
+        }
+        while (cur) {
+            printf(" -> [Key: %d, Value: %s]", cur->key, cur->value);
+            cur = cur->next;
+        }
+        printf("\n");
+    }
+}
+
+void freeTable(void) {
+    for (int i = 0; i < SIZE; ++i) {
+        struct Node* cur = table[i];
+        while (cur) {
+            struct Node* tmp = cur;
+            cur = cur->next;
+            free(tmp);
+        }
+        table[i] = NULL;
+    }
+}
+
+int read_int(const char *prompt, int *out) {
+    char line[LINE_LEN];
+    if (prompt)
+        printf("%s", prompt);
+    if (!fgets(line, sizeof(line), stdin))
+        return 0;
+    
+    char *p = line;
+    while (isspace((unsigned char)*p)) ++p;
+    if (*p == '\0') return 0;
+    
+    if (sscanf(p, "%d", out) == 1)
+        return 1;
+    
+    return 0;
+}
+
+void read_string(const char *prompt, char *out, size_t len) {
+    char line[LINE_LEN];
+    if (prompt)
+        printf("%s", prompt);
+    
+    if (!fgets(line, sizeof(line), stdin)) {
+        out[0] = '\0';
+        return;
+    }
+    
+    size_t l = strlen(line);
+    if (l > 0 && line[l - 1] == '\n')
+        line[l - 1] = '\0';
+    
+    strncpy(out, line, len - 1);
+    out[len - 1] = '\0';
+}
+
+int main(void) {
+    int choice;
+    int key;
+    char value[VALUE_LEN];
+    char line[LINE_LEN];
+    
+    while (1) {
+        printf("\n***** Hash Table Menu (Chaining) *****\n");
+        printf("1. Insert\n2. Search\n3. Delete\n4. Display\n5. Exit\n");
+        
+        if (!read_int("Enter your choice: ", &choice)) {
+            printf("Invalid input. Please enter a number 1-5.\n");
+            continue;
+        }
+        
+        switch (choice) {
+            case 1:
+                if (!read_int("\nEnter key: ", &key)) {
+                    printf("Invalid key input.\n");
+                    break;
+                }
+                read_string("Enter value: ", value, VALUE_LEN);
+                insertKey(key, value);
+                break;
+            case 2:
+                if (!read_int("\nEnter key to search: ", &key)) {
+                    printf("Invalid key input.\n");
+                    break;
+                }
+                searchKey(key);
+                break;
+            case 3:
+                if (!read_int("\nEnter key to delete: ", &key)) {
+                    printf("Invalid key input.\n");
+                    break;
+                }
+                deleteKey(key);
+                break;
+            case 4:
+                displayTable();
+                break;
+            case 5:
+                printf("\nExiting... freeing memory.\n");
+                freeTable();
+                return 0;
+            default:
+                printf("Invalid choice! Enter number 1-5.\n");
+        }
+        
+        read_string("\nDo you want to continue (y/n): ", line, sizeof(line));
+        if (line[0] == '\0' || (line[0] != 'y' && line[0] != 'Y')) {
+            printf("Exiting... freeing memory.\n");
+            freeTable();
+            break;
+        }
+    }
+    
+    return 0;
+}
