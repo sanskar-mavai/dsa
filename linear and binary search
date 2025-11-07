@@ -1,0 +1,57 @@
+n = int(input("Enter the number of customers: "))
+Customers_ID = []
+for i in range(n):
+    ID = int(input(f"Enter ID of customer {i + 1}: "))
+    Customers_ID.append(ID)
+
+print("Customer IDs entered:", Customers_ID)
+search_ID = int(input("Enter Customer ID to search: "))
+
+flag = 0
+for i in range(n):
+    if Customers_ID[i] == search_ID:
+        print(f"Customer ID found at position {i + 1}")
+        flag = 1
+        break
+
+if flag == 0:
+    print("Customer ID not found.")
+
+
+
+
+
+
+
+
+
+def binary_search(arr, x):
+    low = 0
+    high = len(arr) - 1
+    while low <= high:
+        mid = (low + high) // 2
+        if x == arr[mid]:
+            return mid
+        elif x > arr[mid]:
+            low = mid + 1
+        else:
+            high = mid - 1
+    return -1
+
+n = int(input("Enter number of elements: "))
+arr = []
+for i in range(n):
+    num = int(input(f"Enter element {i+1}: "))
+    arr.append(num)
+
+arr.sort()
+print("Sorted list:", arr)
+
+x = int(input("Enter number to search: "))
+
+index = binary_search(arr, x)
+
+if index != -1:
+    print(f"Element found at index {index}")
+else:
+    print("Element not found")
